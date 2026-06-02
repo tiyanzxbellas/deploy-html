@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nanzz — Vercel Deploy API</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117;
+  --panel:#161b22;
+  --panel2:#1c2128;
+  --border:#30363d;
+  --border2:#21262d;
+  --green:#3effa0;
+  --green-dim:rgba(62,255,160,0.12);
+  --green-border:rgba(62,255,160,0.3);
+  --blue:#58a6ff;
+  --orange:#f78166;
+  --yellow:#e3b341;
+  --text:#e6edf3;
+  --text-dim:#8b949e;
+  --text-dimmer:#484f58;
+  --post:#ff7b72;
+  --get:#3fb950;
+}
+body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;min-height:100vh;font-size:13px}
+
+/* TOP BAR */
+.topbar{background:var(--panel);border-bottom:1px solid var(--border);padding:0 16px;height:44px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
+.topbar-url{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text-dim);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-url span{color:var(--blue)}
+
+.page{max-width:720px;margin:0 auto;padding:16px}
+
+/* BREADCRUMB */
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);margin-bottom:20px}
+.breadcrumb span{color:var(--text-dimmer)}
+
+/* SECTION HEADER */
+.section-info{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-dim)}
+.section-info .icon{color:var(--blue);font-size:14px}
+
+/* ENDPOINT CARD */
+.endpoint-card{background:var(--panel);border:1px solid var(--green-border);border-radius:12px;overflow:hidden;margin-bottom:12px;box-shadow:0 0 0 1px rgba(62,255,160,0.05),0 4px 24px rgba(62,255,160,0.04)}
+
+.endpoint-header{padding:14px 16px;display:flex;align-items:center;gap:12px;background:rgba(62,255,160,0.03);border-bottom:1px solid var(--border)}
+
+.badge-post{background:rgba(255,123,114,0.15);color:var(--post);border:1px solid rgba(255,123,114,0.3);padding:3px 10px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:0.5px}
+.badge-get{background:rgba(63,185,80,0.15);color:var(--get);border:1px solid rgba(63,185,80,0.3);padding:3px 10px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:0.5px}
+
+.endpoint-title{font-size:16px;font-weight:700;color:var(--green);flex:1}
+
+.endpoint-body{padding:16px}
+
+/* DESCRIPTION BOX */
+.desc-box{background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(88,166,255,0.85)}
+
+/* PARAM ROW */
+.param-block{margin-bottom:14px}
+.param-label-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.param-name{font-weight:700;color:var(--text);font-size:13px}
+.param-type{background:var(--panel2);border:1px solid var(--border2);color:var(--text-dim);font-size:10px;padding:2px 8px;border-radius:4px}
+.param-req{background:rgba(255,123,114,0.1);border:1px solid rgba(255,123,114,0.3);color:var(--post);font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600}
+.param-desc{color:var(--text-dim);font-size:11px;margin-left:auto}
+
+.input-field{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color 0.2s}
+.input-field:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(62,255,160,0.08)}
+.input-field::placeholder{color:var(--text-dimmer)}
+
+/* FILE INPUT */
+.file-wrapper{position:relative}
+.file-input-hidden{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.file-display{background:var(--panel2);border:1px solid var(--green-border);border-radius:8px;padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background 0.2s}
+.file-display:hover{background:rgba(62,255,160,0.05)}
+.file-btn{background:var(--green);color:#0d1117;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;white-space:nowrap;flex-shrink:0}
+.file-name{color:var(--text-dim);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+/* REQUEST URL BOX */
+.req-url-label{font-size:10px;color:var(--text-dimmer);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.req-url-box{background:var(--panel2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.req-url-text{color:var(--blue);font-size:11px;word-break:break-all;flex:1;line-height:1.5}
+.copy-icon{cursor:pointer;color:var(--text-dim);font-size:14px;flex-shrink:0;transition:color 0.2s;padding:4px}
+.copy-icon:hover{color:var(--green)}
+
+/* EXECUTE BUTTON */
+.exec-btn{width:100%;margin-top:14px;background:var(--green);border:none;border-radius:8px;padding:14px;color:#0d1117;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;letter-spacing:0.5px}
+.exec-btn:hover{background:#5cffc0;box-shadow:0 4px 20px rgba(62,255,160,0.3)}
+.exec-btn:active{transform:scale(0.99)}
+.exec-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.exec-btn .spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,0.3);border-top-color:#000;border-radius:50%;animation:spin 0.6s linear infinite;display:none}
+.exec-btn.loading .spinner{display:block}
+.exec-btn.loading .btn-label{opacity:0.7}
+
+/* STATUS + RESPONSE */
+.response-block{margin-top:14px}
+.status-row{background:var(--panel2);border:1px solid var(--border2);border-radius:8px 8px 0 0;padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--text-dimmer);display:inline-block;margin-right:8px;transition:background 0.3s}
+.status-dot.idle{background:var(--text-dimmer)}
+.status-dot.loading{background:var(--yellow);animation:pulse 1s infinite}
+.status-dot.ok{background:var(--green)}
+.status-dot.err{background:var(--orange)}
+.status-label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.status-label.idle{color:var(--text-dimmer)}
+.status-label.loading{color:var(--yellow)}
+.status-label.ok{color:var(--green)}
+.status-label.err{color:var(--orange)}
+.copy-res{cursor:pointer;color:var(--text-dim);font-size:12px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);transition:all 0.2s}
+.copy-res:hover{border-color:var(--green);color:var(--green)}
+.response-output{background:var(--bg);border:1px solid var(--border2);border-top:none;border-radius:0 0 8px 8px;padding:14px;min-height:60px;font-size:12px;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+
+/* JSON colors */
+.jk{color:#f78166}.js{color:#a5d6ff}.jn{color:#f8cc6a}.jt{color:#3effa0}.jf{color:#ff7b72}.jnull{color:#8b949e}
+
+/* OTHER ENDPOINTS */
+.other-endpoints{margin-top:20px}
+.other-label{font-size:10px;color:var(--text-dimmer);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.other-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.endpoint-row{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer;transition:border-color 0.2s}
+.endpoint-row:hover{border-color:var(--text-dim)}
+.endpoint-row-name{font-size:13px;flex:1}
+.endpoint-row-open{color:var(--text-dim);font-size:11px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.fadein{animation:fadeIn 0.3s ease both}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-url">
+    <span>api-nanzz.my.id</span>/docs/api/tools/deploy.php
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    api-nanzz.my.id <span>/</span> docs <span>/</span> api <span>/</span> tools <span>/</span> deploy
+  </div>
+
+  <!-- Deploy Endpoint -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="badge-post">POST</span>
+      <span class="endpoint-title">Deploy</span>
+      <span style="font-size:11px;color:var(--text-dim)">[CLOSE]</span>
+    </div>
+    <div class="endpoint-body">
+
+      <div class="desc-box">
+        <span class="icon">ℹ</span>
+        Vercel Deploy API
+      </div>
+
+      <!-- name param -->
+      <div class="param-block">
+        <div class="param-label-row">
+          <span class="param-name">name</span>
+          <span class="param-type">string</span>
+          <span class="param-req">*required</span>
+          <span class="param-desc">Nama project</span>
+        </div>
+        <input type="text" class="input-field" id="paramName" placeholder="my-project" value="" />
+      </div>
+
+      <!-- file param -->
+      <div class="param-block">
+        <div class="param-label-row">
+          <span class="param-name">file</span>
+          <span class="param-type">file</span>
+          <span class="param-req">*required</span>
+          <span class="param-desc">Upload File</span>
+        </div>
+        <div class="file-wrapper">
+          <div class="file-display" id="fileDisplay">
+            <span class="file-btn">Pilih File</span>
+            <span class="file-name" id="fileName">Tidak ada file yang dipilih</span>
+          </div>
+          <input type="file" class="file-input-hidden" id="fileInput" onchange="onFileChange(this)" />
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Execute -->
+      <button class="exec-btn" id="execBtn" onclick="executeRequest()">
+        <div class="spinner"></div>
+        <span class="btn-label">▶ Execute Request</span>
+      </button>
+
+      <!-- Response -->
+      <div class="response-block fadein" id="responseBlock">
+        <div class="status-row">
+          <div style="display:flex;align-items:center">
+            <span class="status-dot idle" id="statusDot"></span>
+            <span class="status-label idle" id="statusLabel">IDLE</span>
+          </div>
+          <span class="copy-res" id="copyResBtn" onclick="copyResponse()" style="display:none">copy</span>
+        </div>
+        <div class="response-output" id="responseOutput">// Awaiting execution...</div>
+      </div>
+
+    </div>
+  </div>
+
+
+
+</div>
+
+<script>
+const API_URL = 'https://api-nanzz.my.id/docs/api/tools/deploy.php';
+let lastResponse = '';
+
+function onFileChange(input) {
+  const name = input.files[0] ? input.files[0].name : 'Tidak ada file yang dipilih';
+  document.getElementById('fileName').textContent = name;
+}
+
+function setStatus(state, text) {
+  const dot = document.getElementById('statusDot');
+  const lbl = document.getElementById('statusLabel');
+  dot.className = 'status-dot ' + state;
+  lbl.className = 'status-label ' + state;
+  lbl.textContent = text;
+}
+
+function copyUrl() {
+  navigator.clipboard.writeText(API_URL);
+  const el = document.querySelector('.copy-icon');
+  el.textContent = '✓';
+  setTimeout(() => el.textContent = '⎘', 1500);
+}
+
+function copyResponse() {
+  navigator.clipboard.writeText(lastResponse);
+  const btn = document.getElementById('copyResBtn');
+  btn.textContent = 'copied!';
+  btn.style.color = 'var(--green)';
+  setTimeout(() => { btn.textContent = 'copy'; btn.style.color = ''; }, 1500);
+}
+
+function syntaxHL(json) {
+  return json
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+      if (/^"/.test(m)) return /:$/.test(m) ? `<span class="jk">${m}</span>` : `<span class="js">${m}</span>`;
+      if (/true/.test(m)) return `<span class="jt">${m}</span>`;
+      if (/false/.test(m)) return `<span class="jf">${m}</span>`;
+      if (/null/.test(m)) return `<span class="jnull">${m}</span>`;
+      return `<span class="jn">${m}</span>`;
+    });
+}
+
+async function executeRequest() {
+  const name = document.getElementById('paramName').value.trim();
+  const fileInput = document.getElementById('fileInput');
+  const output = document.getElementById('responseOutput');
+  const btn = document.getElementById('execBtn');
+  const copyBtn = document.getElementById('copyResBtn');
+
+  if (!name) {
+    output.innerHTML = '<span style="color:var(--orange)">// Error: Parameter "name" wajib diisi!</span>';
+    setStatus('err', 'ERROR');
+    document.getElementById('paramName').focus();
+    return;
+  }
+  if (!fileInput.files[0]) {
+    output.innerHTML = '<span style="color:var(--orange)">// Error: File wajib dipilih!</span>';
+    setStatus('err', 'ERROR');
+    return;
+  }
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+  setStatus('loading', 'EXECUTING...');
+  output.innerHTML = '<span style="color:var(--yellow)">// Sending request...</span>';
+  copyBtn.style.display = 'none';
+
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('file', fileInput.files[0]);
+
+  const t0 = Date.now();
+  try {
+    const res = await fetch(API_URL, { method: 'POST', body: fd });
+    const elapsed = Date.now() - t0;
+    const text = await res.text();
+    lastResponse = text;
+
+    let pretty;
+    try {
+      pretty = JSON.stringify(JSON.parse(text), null, 2);
+      output.innerHTML = syntaxHL(pretty);
+    } catch {
+      output.textContent = text;
+    }
+
+    if (res.ok) {
+      setStatus('ok', `OK · ${res.status} · ${elapsed}ms`);
+    } else {
+      setStatus('err', `ERROR · ${res.status} · ${elapsed}ms`);
+    }
+    copyBtn.style.display = 'block';
+
+  } catch (err) {
+    const elapsed = Date.now() - t0;
+    const errObj = { error: err.message, hint: "Kemungkinan CORS error. Coba akses langsung dari browser.", url: API_URL };
+    lastResponse = JSON.stringify(errObj, null, 2);
+    output.innerHTML = syntaxHL(lastResponse);
+    setStatus('err', `FAILED · ${elapsed}ms`);
+    copyBtn.style.display = 'block';
+  }
+
+  btn.classList.remove('loading');
+  btn.disabled = false;
+}
+
+// Enter support
+document.getElementById('paramName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') executeRequest();
+});
+</script>
+</body>
+</html>
